@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MQTT Test</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+  <h2>MQTT Client</h2>
+  <button onclick="sendMessage()">Enviar Mensagem</button>
+  <div id="messages"></div>
+
+  <script>
+    // Configuração do broker
+    const brokerUrl = "wss://broker.hivemq.com:8884/mqtt";
+    const topic = "teste/mensagem";
+
+    // Conectar ao broker
+    const client = mqtt.connect(brokerUrl);
+
+    client.on("connect", () => {
+      console.log("Conectado ao broker");
+      client.subscribe(topic, (err) => {
+        if (!err) {
+          console.log(`Inscrito no tópico: ${topic}`);
+        } else {
+          console.error("Erro ao se inscrever no tópico:", err);
+        }
+      });
+    });
+
+    // Receber mensagens
+    client.on("message", (topic, message) => {
+      const msg = document.createElement("p");
+      msg.textContent = `Mensagem recebida: ${message.toString()}`;
+      document.getElementById("messages").appendChild(msg);
+      console.log(`Recebido no tópico ${topic}:`, message.toString());
+    });
+
+    //{"temperatura":25,"umidade":56}
+
+    // Função para enviar mensagem JSON
+    function sendMessage() {
+      const data = {
+        temperatura: Math.floor(Math.random() * 30) + 15, // Gera um valor aleatório entre 15 e 45
+        umidade: Math.floor(Math.random() * 50) + 30      // Gera um valor aleatório entre 30 e 80
+      };
+      
+      const message = JSON.stringify(data); // Converte o objeto para JSON
+
+      client.publish(topic, message, (err) => {
+        if (!err) {
+          console.log("Mensagem JSON enviada:", message);
+        } else {
+          console.error("Erro ao enviar mensagem:", err);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -4,18 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Safe Deck</title>
-    <link rel="preload" href="https://fonts.cdnfonts.com/s/27482/Gagalin.woff" as="font" type="font/woff" crossorigin="anonymous">
-
+    <link href="https://fonts.cdnfonts.com/css/gagalin" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.cdnfonts.com/css/gagalin');
-
-        @font-face {
-            font-family: 'Gagalin';
-            src: url('https://fonts.cdnfonts.com/s/27482/Gagalin.woff') format('woff');
-            font-display: swap; /* Isso vai forçar a troca suave da fonte quando ela carregar */
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -97,11 +88,15 @@
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
+            gap: 20px;
         }
 
         .gauge-wrapper {
             text-align: center;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .gauge {
@@ -109,35 +104,38 @@
             width: 250px;
             height: 250px;
             border-radius: 50%;
-            background: conic-gradient(#ffffff 0% 50%, transparent 50% 100%);
-            border: 12px solid white;
+            background: conic-gradient(#4c9ece 0% 0%, #dddddd 0% 100%);
+            border: 10px solid #ffffff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
         }
 
         .gauge-large {
             width: 400px;
             height: 400px;
-            background: conic-gradient(#ffffff 0% 50%, transparent 50% 100%);
-            border: 16px solid white;
+            background: conic-gradient(#4c9ece 0% 0%, #dddddd 0% 100%);
+            border: 12px solid #ffffff;
         }
 
         .gauge-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2.5em;
-            font-weight: bold;
+            font-size: 2.3em;
+            font-weight: 500;
             color: #2c75ffea;
-            background-color: white;
-            padding: 10px 20px;
+            background-color: #ffffff;
+            padding: 15px 30px;
             border-radius: 50px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
 
         .gauge-description {
-            margin-top: 10px;
+            font-weight: 500;
+            margin-top: 15px;
             font-size: 1.5em;
-            font-weight: bold;
-            color: white;
+            color: #ffffff;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
         }
 
         /* Responsividade para dispositivos menores (mobile) */
@@ -151,13 +149,13 @@
             }
 
             .gauge {
-                width: 35vw; /* Ajusta o tamanho dos medidores para telas pequenas */
+                width: 35vw;
                 height: 35vw;
                 border: 8px solid white;
             }
 
             .gauge-large {
-                width: 45vw; /* Ajusta o tamanho do medidor grande */
+                width: 45vw;
                 height: 45vw;
                 border: 12px solid white;
             }
@@ -194,6 +192,13 @@
             .gauge-description {
                 font-size: 3vw;
             }
+            h1 {
+                font-size: 3.5em !important;
+                margin-top: 20px !important;
+                font-weight: 300 !important;
+                letter-spacing: 2px !important;
+                color: white !important;
+            }
         }
     </style>
 </head>
@@ -203,7 +208,7 @@
     <div id="page1" class="container fade-in">
         <img src="./logo.png" alt="Safe Deck Logo" class="logo">
         <h1>SAFE DECK</h1>
-        <p>Cuidado inteligente para seus cards</p>
+        <p>O melhor cuidado para os seus cards</p>
     </div>
 
     <!-- Segunda página (Medidores) -->
@@ -211,56 +216,95 @@
         <div class="gauge-container">
             <div class="gauge-wrapper">
                 <div class="gauge" id="gauge-temp">
-                    <div class="gauge-text" id="temp-text">20°</div>
+                    <div class="gauge-text" id="temp-text">0°</div>
                 </div>
                 <div class="gauge-description">TEMPERATURA</div>
             </div>
             <div class="gauge-wrapper">
                 <div class="gauge gauge-large" id="gauge-health">
-                    <div class="gauge-text" id="health-text">6%</div>
+                    <div class="gauge-text" id="health-text">0%</div>
                 </div>
                 <div class="gauge-description">SAÚDE</div>
             </div>
             <div class="gauge-wrapper">
                 <div class="gauge" id="gauge-humidity">
-                    <div class="gauge-text" id="humidity-text">6%</div>
+                    <div class="gauge-text" id="humidity-text">0%</div>
                 </div>
                 <div class="gauge-description">UMIDADE</div>
             </div>
         </div>
     </div>
 
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        // Função para alternar entre as páginas com efeito de fading suave
         setTimeout(() => {
             const page1 = document.getElementById('page1');
             const page2 = document.getElementById('page2');
-
-            // Aplica o fade-out na primeira página
             page1.classList.add('fade-out');
-
-            // Após o fade-out, exibe a segunda página com fade-in e inicia o preenchimento
             setTimeout(() => {
                 page1.classList.add('hidden');
                 page2.classList.remove('hidden');
                 page2.classList.add('fade-in');
+            }, 1000);
+        }, 3000);
 
-                // Atualiza os medidores
-                updateGauge('gauge-temp', 'temp-text', 20);
-                updateGauge('gauge-health', 'health-text', 6);
-                updateGauge('gauge-humidity', 'humidity-text', 6);
-
-            }, 1000); // 1 segundo de delay para o fade-out terminar
-        }, 5000); // Mostra a primeira página por 5 segundos
-
-        // Função para atualizar o medidor
-        function updateGauge(gaugeId, textId, value) {
+        function animateGauge(gaugeId, textId, startValue, endValue, unit = '%', duration = 1000) {
             const gauge = document.getElementById(gaugeId);
             const text = document.getElementById(textId);
-            const degree = (value / 100) * 360; // Calcula o ângulo do preenchimento
-            gauge.style.background = `conic-gradient(#ffffff ${degree}deg, transparent ${degree}deg 360deg)`;
-            text.innerHTML = value + '%';
+            const startDegree = (startValue / 100) * 360;
+            const endDegree = (endValue / 100) * 360;
+            let startTime;
+
+            function updateAnimation(currentTime) {
+                if (!startTime) startTime = currentTime;
+                const progress = Math.min((currentTime - startTime) / duration, 1);
+                const currentDegree = startDegree + (endDegree - startDegree) * progress;
+                const currentValue = startValue + (endValue - startValue) * progress;
+
+                gauge.style.background = `conic-gradient(#4adeb2 ${currentDegree}deg, #dddddd ${currentDegree}deg 360deg)`;
+                text.innerHTML = Math.round(currentValue) + unit;
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateAnimation);
+                }
+            }
+
+            requestAnimationFrame(updateAnimation);
         }
+
+        const brokerUrl = "wss://broker.hivemq.com:8884/mqtt";
+        const topic = "teste/mensagem";
+        const client = mqtt.connect(brokerUrl);
+
+        client.on("connect", () => {
+            console.log("Conectado ao broker");
+            client.subscribe(topic, (err) => {
+                if (!err) {
+                    console.log(`Inscrito no tópico: ${topic}`);
+                } else {
+                    console.error("Erro ao se inscrever no tópico:", err);
+                }
+            });
+        });
+
+        client.on("message", (topic, message) => {
+            try {
+                const data = JSON.parse(message.toString());
+                if (data.temperatura !== undefined) {
+                    animateGauge('gauge-temp', 'temp-text', parseFloat(document.getElementById('temp-text').innerText), data.temperatura, '°');
+                }
+                if (data.umidade !== undefined) {
+                    animateGauge('gauge-humidity', 'humidity-text', parseFloat(document.getElementById('humidity-text').innerText), data.umidade, '%');
+                }
+
+                if (data.umidade !== undefined && data.temperatura !== undefined) {
+                    animateGauge('gauge-health', 'health-text', parseFloat(document.getElementById('health-text').innerText), 5 + data.umidade, '%');
+                }
+                console.log("Dados recebidos:", data);
+            } catch (error) {
+                console.error("Erro ao analisar JSON:", error);
+            }
+        });
     </script>
 
 </body>
