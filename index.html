@@ -295,9 +295,20 @@
             requestAnimationFrame(updateAnimation);
         }
 
-        const brokerUrl = "wss://broker.hivemq.com:8884/mqtt";
+        const brokerUrl = "wss://704a9f13f869417488d48b4d5fb4385c.s1.eu.hivemq.cloud:8884/mqtt";
         const topic = "teste/mensagem";
-        const client = mqtt.connect(brokerUrl);
+
+        // Credenciais de autenticação
+        const username = 'teste';
+        const password = 'Teste123';
+
+        // Configuração de conexão com autenticação
+        const options = {
+            username: username,
+            password: password
+        };
+
+        const client = mqtt.connect(brokerUrl, options);
 
         client.on("connect", () => {
             console.log("Conectado ao broker");
@@ -313,6 +324,7 @@
         client.on("message", (topic, message) => {
             try {
                 const data = JSON.parse(message.toString());
+                console.log(data)
                 if (data.temperatura !== undefined) {
                     animateGauge('gauge-temp', 'temp-text', parseFloat(document.getElementById('temp-text').innerText), data.temperatura, '°');
                 }
