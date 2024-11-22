@@ -321,6 +321,23 @@
             });
         });
 
+        function calcularSaude(temperatura, umidade) {
+            // Constante de degradação (ajustável)
+            const k = 0.0001;
+
+            // Calcular a degradação (D) usando a fórmula simplificada
+            let degradação = k * temperatura * umidade;  // Resultado em valor decimal
+
+            // Calcular a saúde (em porcentagem)
+            let saude = 100 - (degradação * 100);  // Saúde em porcentagem
+
+            // Garantir que a saúde não seja negativa
+            saude = Math.max(saude, 0);
+
+            // Retornar a saúde com 0 casas decimais (como um número inteiro)
+            return parseInt(saude.toFixed(0));
+        }
+
         client.on("message", (topic, message) => {
             try {
                 const data = JSON.parse(message.toString());
@@ -333,7 +350,7 @@
                 }
 
                 if (data.umidade !== undefined && data.temperatura !== undefined) {
-                    animateGauge('gauge-health', 'health-text', parseFloat(document.getElementById('health-text').innerText), 5 + data.umidade, '%');
+                    animateGauge('gauge-health', 'health-text', parseFloat(document.getElementById('health-text').innerText), calcularSaude(data.temperatura, data.umidade) , '%');
                 }
                 console.log("Dados recebidos:", data);
             } catch (error) {
